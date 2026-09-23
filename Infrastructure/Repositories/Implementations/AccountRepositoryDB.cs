@@ -3,41 +3,54 @@ using GDB.App.Domain.Models;
 using GDB.App.Infrastructure.Repositories.Contracts;
 using GDB.App.Infrastructure.Repositories.Queries;
 using System.Data.Common;
+using gdb.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace GDB.App.Infrastructure.Repositories.Implementations
 {
     internal class AccountRepositoryDB : IAccountRepository
     {
+        private static readonly ILogger _logger = AppLogger.CreateLogger<AccountRepositoryDB>();
+
         public async Task<IAccount> GetAccountAsync(string accountNumber)
         {
-            using (DbConnection connection =
-                   DataBaseConnectionManager.GetConnection())
+            try
             {
-                connection.Open();
-
-                using (DbCommand command =
-                       connection.CreateCommand())
+                using (DbConnection connection =
+                       DataBaseConnectionManager.GetConnection())
                 {
-                    command.CommandText =
-                        AccountQueries.GetAccount;
+                    connection.Open();
 
-                    AddParameter(
-                        command,
-                        "@AccountNumber",
-                        accountNumber);
-
-                    using (DbDataReader reader =
-                           command.ExecuteReader())
+                    using (DbCommand command =
+                           connection.CreateCommand())
                     {
-                        if (reader.Read())
+                        command.CommandText =
+                            AccountQueries.GetAccount;
+
+                        AddParameter(
+                            command,
+                            "@AccountNumber",
+                            accountNumber);
+
+                        using (DbDataReader reader =
+                               command.ExecuteReader())
                         {
-                            return CreateAccount(reader);
+                            if (reader.Read())
+                            {
+                                return CreateAccount(reader);
+                            }
                         }
                     }
                 }
-            }
 
-            return null;
+                _logger.LogWarning("Account {AccountNumber} not found in DB", accountNumber);
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to fetch account {AccountNumber}", accountNumber);
+                throw;
+            }
         }
 
 
@@ -45,86 +58,95 @@ namespace GDB.App.Infrastructure.Repositories.Implementations
             IAccount account,
             string pin)
         {
-            using (DbConnection connection =
-                   DataBaseConnectionManager.GetConnection())
+            try
             {
-                connection.Open();
-
-                DbTransaction transaction =
-                    connection.BeginTransaction();
-
-                try
+                using (DbConnection connection =
+                       DataBaseConnectionManager.GetConnection())
                 {
-                    long accountId;
+                    connection.Open();
 
-                    using (DbCommand command =
-                           connection.CreateCommand())
+                    DbTransaction transaction =
+                        connection.BeginTransaction();
+
+                    try
                     {
-                        command.Transaction = transaction;
-                        command.CommandText =
-                            AccountQueries.InsertAccount;
+                        long accountId;
 
-                        AddParameter(
-                            command,
-                            "@AccountNumber",
-                            account.AccountNumber);
+                        using (DbCommand command =
+                               connection.CreateCommand())
+                        {
+                            command.Transaction = transaction;
+                            command.CommandText =
+                                AccountQueries.InsertAccount;
 
-                        AddParameter(
-                            command,
-                            "@Name",
-                            account.Name);
+                            AddParameter(
+                                command,
+                                "@AccountNumber",
+                                account.AccountNumber);
 
-                        AddParameter(
-                            command,
-                            "@Age",
-                            account.Age);
+                            AddParameter(
+                                command,
+                                "@Name",
+                                account.Name);
 
-                        AddParameter(
-                            command,
-                            "@AccountType",
-                            GetAccountTypeCode(
-                                account.AccountType));
+                            AddParameter(
+                                command,
+                                "@Age",
+                                account.Age);
 
-                        AddParameter(
-                            command,
-                            "@Balance",
-                            account.Balance);
+                            AddParameter(
+                                command,
+                                "@AccountType",
+                                GetAccountTypeCode(
+                                    account.AccountType));
 
-                        AddParameter(
-                            command,
-                            "@AccountStatus",
-                            GetAccountStatusCode(
-                                account.Status));
+                            AddParameter(
+                                command,
+                                "@Balance",
+                                account.Balance);
 
-                        AddParameter(
-                            command,
-                            "@AccountPrivilege",
-                            GetAccountPrivilegeCode(
-                                account.Privilege));
+                            AddParameter(
+                                command,
+                                "@AccountStatus",
+                                GetAccountStatusCode(
+                                    account.Status));
 
-                        AddParameter(
-                            command,
-                            "@Pin",
-                            pin);
+                            AddParameter(
+                                command,
+                                "@AccountPrivilege",
+                                GetAccountPrivilegeCode(
+                                    account.Privilege));
 
-                        accountId =
-                            Convert.ToInt64(
-                                command.ExecuteScalar());
+                            AddParameter(
+                                command,
+                                "@Pin",
+                                pin);
+
+                            accountId =
+                                Convert.ToInt64(
+                                    command.ExecuteScalar());
+                        }
+
+                        SaveAccountType(
+                            account,
+                            accountId,
+                            connection,
+                            transaction);
+
+                        transaction.Commit();
                     }
-
-                    SaveAccountType(
-                        account,
-                        accountId,
-                        connection,
-                        transaction);
-
-                    transaction.Commit();
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Rolling back SaveAccount for {AccountNumber}", account.AccountNumber);
+                        transaction.Rollback();
+                        throw;
+                    }
                 }
-                catch
-                {
-                    transaction.Rollback();
-                    throw;
-                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save account {AccountNumber}", account.AccountNumber);
+                throw;
             }
         }
 
@@ -166,6 +188,10 @@ namespace GDB.App.Infrastructure.Repositories.Implementations
                     accountId,
                     connection,
                     transaction);
+            }
+            else
+            {
+                _logger.LogWarning("No subtype table for account {AccountNumber} of type {AccountType}", account.AccountNumber, account.GetType().Name);
             }
         }
 
@@ -311,92 +337,122 @@ namespace GDB.App.Infrastructure.Repositories.Implementations
             string accountNumber,
             decimal balance)
         {
-            using DbConnection connection =
-                DataBaseConnectionManager.GetConnection();
+            try
+            {
+                using DbConnection connection =
+                    DataBaseConnectionManager.GetConnection();
 
-            connection.Open();
+                connection.Open();
 
-            using DbCommand command =
-                connection.CreateCommand();
+                using DbCommand command =
+                    connection.CreateCommand();
 
-            command.CommandText =
-                AccountQueries.UpdateBalance;
+                command.CommandText =
+                    AccountQueries.UpdateBalance;
 
-            AddParameter(
-                command,
-                "@Balance",
-                balance);
+                AddParameter(
+                    command,
+                    "@Balance",
+                    balance);
 
-            AddParameter(
-                command,
-                "@AccountNumber",
-                accountNumber);
+                AddParameter(
+                    command,
+                    "@AccountNumber",
+                    accountNumber);
 
-            command.ExecuteNonQuery();
+                int rowsAffected = command.ExecuteNonQuery();
+
+                if (rowsAffected == 0)
+                {
+                    _logger.LogWarning("UpdateBalance affected no rows for account {AccountNumber}", accountNumber);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update balance for account {AccountNumber}", accountNumber);
+                throw;
+            }
         }
 
 
         public void CloseAccount(
             string accountNumber)
         {
-            using (DbConnection connection =
-                   DataBaseConnectionManager.GetConnection())
+            try
             {
-                connection.Open();
-
-                using (DbCommand command =
-                       connection.CreateCommand())
+                using (DbConnection connection =
+                       DataBaseConnectionManager.GetConnection())
                 {
-                    command.CommandText =
-                        AccountQueries.CloseAccount;
+                    connection.Open();
 
-                    AddParameter(
-                        command,
-                        "@AccountNumber",
-                        accountNumber);
-
-                    int rowsAffected =
-                        command.ExecuteNonQuery();
-
-                    if (rowsAffected == 0)
+                    using (DbCommand command =
+                           connection.CreateCommand())
                     {
-                        throw new Exception(
-                            "Account not found.");
+                        command.CommandText =
+                            AccountQueries.CloseAccount;
+
+                        AddParameter(
+                            command,
+                            "@AccountNumber",
+                            accountNumber);
+
+                        int rowsAffected =
+                            command.ExecuteNonQuery();
+
+                        if (rowsAffected == 0)
+                        {
+                            _logger.LogWarning("CloseAccount: account {AccountNumber} not found", accountNumber);
+                            throw new Exception(
+                                "Account not found.");
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to close account {AccountNumber}", accountNumber);
+                throw;
             }
         }
 
 
         public List<IAccount> GetAllAccounts()
         {
-            List<IAccount> accounts =
-                new List<IAccount>();
-
-            using (DbConnection connection =
-                   DataBaseConnectionManager.GetConnection())
+            try
             {
-                connection.Open();
+                List<IAccount> accounts =
+                    new List<IAccount>();
 
-                using (DbCommand command =
-                       connection.CreateCommand())
+                using (DbConnection connection =
+                       DataBaseConnectionManager.GetConnection())
                 {
-                    command.CommandText =
-                        AccountQueries.GetAllAccounts;
+                    connection.Open();
 
-                    using (DbDataReader reader =
-                           command.ExecuteReader())
+                    using (DbCommand command =
+                           connection.CreateCommand())
                     {
-                        while (reader.Read())
+                        command.CommandText =
+                            AccountQueries.GetAllAccounts;
+
+                        using (DbDataReader reader =
+                               command.ExecuteReader())
                         {
-                            accounts.Add(
-                                CreateAccount(reader));
+                            while (reader.Read())
+                            {
+                                accounts.Add(
+                                    CreateAccount(reader));
+                            }
                         }
                     }
                 }
-            }
 
-            return accounts;
+                return accounts;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to fetch all accounts");
+                throw;
+            }
         }
 
 
@@ -404,55 +460,64 @@ namespace GDB.App.Infrastructure.Repositories.Implementations
             IAccount fromAccount,
             IAccount toAccount)
         {
-            using (DbConnection connection =
-                   DataBaseConnectionManager.GetConnection())
+            try
             {
-                connection.Open();
-
-                DbTransaction transaction =
-                    connection.BeginTransaction();
-
-                try
+                using (DbConnection connection =
+                       DataBaseConnectionManager.GetConnection())
                 {
-                    using (DbCommand command =
-                           connection.CreateCommand())
+                    connection.Open();
+
+                    DbTransaction transaction =
+                        connection.BeginTransaction();
+
+                    try
                     {
-                        command.Transaction =
-                            transaction;
+                        using (DbCommand command =
+                               connection.CreateCommand())
+                        {
+                            command.Transaction =
+                                transaction;
 
-                        command.CommandText =
-                            AccountQueries.SaveAccounts;
+                            command.CommandText =
+                                AccountQueries.SaveAccounts;
 
-                        AddParameter(
-                            command,
-                            "@Balance",
-                            fromAccount.Balance);
+                            AddParameter(
+                                command,
+                                "@Balance",
+                                fromAccount.Balance);
 
-                        AddParameter(
-                            command,
-                            "@AccountNumber",
-                            fromAccount.AccountNumber);
+                            AddParameter(
+                                command,
+                                "@AccountNumber",
+                                fromAccount.AccountNumber);
 
-                        command.ExecuteNonQuery();
+                            command.ExecuteNonQuery();
 
-                        command.Parameters[
-                            "@Balance"].Value =
-                            toAccount.Balance;
+                            command.Parameters[
+                                "@Balance"].Value =
+                                toAccount.Balance;
 
-                        command.Parameters[
-                            "@AccountNumber"].Value =
-                            toAccount.AccountNumber;
+                            command.Parameters[
+                                "@AccountNumber"].Value =
+                                toAccount.AccountNumber;
 
-                        command.ExecuteNonQuery();
+                            command.ExecuteNonQuery();
+                        }
+
+                        transaction.Commit();
                     }
-
-                    transaction.Commit();
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Rolling back SaveAccounts for {FromAccount} -> {ToAccount}", fromAccount.AccountNumber, toAccount.AccountNumber);
+                        transaction.Rollback();
+                        throw;
+                    }
                 }
-                catch
-                {
-                    transaction.Rollback();
-                    throw;
-                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save accounts {FromAccount} -> {ToAccount}", fromAccount.AccountNumber, toAccount.AccountNumber);
+                throw;
             }
         }
 
@@ -703,6 +768,7 @@ namespace GDB.App.Infrastructure.Repositories.Implementations
                     return AccountType.Salary;
 
                 default:
+                    _logger.LogWarning("Unknown account type code {AccountTypeCode} read from DB", value);
                     throw new Exception(
                         "Invalid account type: " + value);
             }

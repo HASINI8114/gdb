@@ -12,6 +12,8 @@ using System.Linq;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
+using gdb.Logging;
+using Microsoft.Extensions.Logging;
 
 
 namespace GDB.App.Application.Services.Implementations
@@ -20,6 +22,7 @@ namespace GDB.App.Application.Services.Implementations
     {
         private readonly IAccountRepository _accountRepository;
         private readonly ITransactionRepository _transactionRepository;
+        private static readonly ILogger _logger = AppLogger.CreateLogger<TransactionService>();
 
         public TransactionService()
         {
@@ -33,6 +36,7 @@ namespace GDB.App.Application.Services.Implementations
 
             if (account == null)
             {
+                _logger.LogWarning("Deposit failed: account {AccountNumber} not found", accountNumber);
                 throw new Exception("Account not found");
             }
 
@@ -51,6 +55,7 @@ namespace GDB.App.Application.Services.Implementations
                 0,
                 account.Balance
             );
+            _logger.LogInformation("Deposited {Amount} to {AccountNumber}", amount, accountNumber);
             return new DepositResponseDto()
             {
                 Balance = account.Balance,
@@ -67,6 +72,7 @@ namespace GDB.App.Application.Services.Implementations
 
             if (account == null)
             {
+                _logger.LogWarning("Withdraw failed: account {AccountNumber} not found", accountNumber);
                 throw new Exception("Account not found");
             }
 
@@ -86,6 +92,7 @@ namespace GDB.App.Application.Services.Implementations
                 account.Balance,
                 0
             );
+            _logger.LogInformation("Withdrew {Amount} from {AccountNumber}", amount, accountNumber);
 
             return new WithdrawResponseDto()
             {
@@ -110,6 +117,7 @@ namespace GDB.App.Application.Services.Implementations
                 fromAccount = await GetAccountAsync(fromAccountNumber);
                 if (fromAccount == null)
                 {
+                    _logger.LogWarning("Transfer failed: from account {AccountNumber} not found", fromAccountNumber);
                     throw new Exception("From account not found");
                 }
 
@@ -121,6 +129,7 @@ namespace GDB.App.Application.Services.Implementations
 
                 if (toAccount == null)
                 {
+                    _logger.LogWarning("Transfer failed: to account {AccountNumber} not found", toAccountNumber);
                     throw new Exception("To account not found");
                 }
 
@@ -162,13 +171,16 @@ namespace GDB.App.Application.Services.Implementations
                 DisplayAccount("TO ACCOUNT", toAccount);
 
                 status = TransactionStatus.Success;
+                _logger.LogInformation("Transferred {Amount} from {FromAccount} to {ToAccount}", amount, fromAccountNumber, toAccountNumber);
             }
             catch (InactiveAccountException)
             {
+                _logger.LogWarning("Transfer {FromAccount} -> {ToAccount} rejected: inactive account", fromAccountNumber, toAccountNumber);
                 throw new InactiveAccountException();
             }
             catch (InvalidPinException)
             {
+                _logger.LogWarning("Transfer from {FromAccount} rejected: invalid PIN", fromAccountNumber);
                 throw new InvalidPinException();
             }
 
