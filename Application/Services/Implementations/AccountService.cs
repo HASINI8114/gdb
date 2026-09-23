@@ -13,6 +13,8 @@ using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using gdb.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace GDB.App.Application.Services.Implementations
 {
@@ -21,6 +23,7 @@ namespace GDB.App.Application.Services.Implementations
         //Business Logic 
         //composition
         private readonly IAccountRepository _accountRepository;
+        private static readonly ILogger _logger = AppLogger.CreateLogger<AccountService>();
 
         public AccountService()
         {
@@ -108,12 +111,19 @@ namespace GDB.App.Application.Services.Implementations
             IAccount account = await _accountRepository.GetAccountAsync(request.AccountNumber);
 
             if (account == null)
+            {
+                _logger.LogWarning("Close requested for unknown account {AccountNumber}", request.AccountNumber);
                 throw new Exception("Account not found.");
+            }
 
             if (account.Status == AccountStatus.Closed)
+            {
+                _logger.LogWarning("Close requested for already closed account {AccountNumber}", request.AccountNumber);
                 throw new Exception("Account is already closed.");
+            }
 
             _accountRepository.CloseAccount(request.AccountNumber);
+            _logger.LogInformation("Account {AccountNumber} closed", request.AccountNumber);
 
             return new CloseAccountResponseDto()
             {
@@ -143,6 +153,7 @@ namespace GDB.App.Application.Services.Implementations
             );
 
             _accountRepository.SaveAccount(account, request.Pin);
+            _logger.LogInformation("Created {AccountType} account {AccountNumber}", account.AccountType, account.AccountNumber);
 
             return new CreateAccountResponseDto()
             {
