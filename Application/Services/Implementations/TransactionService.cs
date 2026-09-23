@@ -27,7 +27,7 @@ namespace GDB.App.Application.Services.Implementations
             _transactionRepository = TransactionRepositoryFactory.Create("DB");
         }
 
-        public async Task<DepositResponseDto> Deposit(string accountNumber, decimal amount)
+        public async Task<DepositResponseDto> DepositAsync(string accountNumber, decimal amount)
         {
             IAccount account = await _accountRepository.GetAccountAsync(accountNumber);
 
@@ -94,7 +94,7 @@ namespace GDB.App.Application.Services.Implementations
             };
         }
 
-        public async Task<TranferFundsResponseDto> TransferFunds(string fromAccountNumber,
+        public async Task<TranferFundsResponseDto> TransferFundsAsync(string fromAccountNumber,
                                 string toAccountNumber,
                                 string pin,
                                 decimal amount)
@@ -266,25 +266,25 @@ namespace GDB.App.Application.Services.Implementations
                 accountNumber);
         }
 
-        public List<ViewRecentTransactionsResponseDto> GetRecentTransactions(string accountNumber)
-        {
-            throw new NotImplementedException();
-        }
+        //public List<ViewRecentTransactionsResponseDto> GetRecentTransactions(string accountNumber)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
-        public Task<DepositResponseDto> DepositAsync(string accountNumber, decimal amount)
-        {
-            throw new NotImplementedException();
-        }
+        //public Task<DepositResponseDto> DepositAsync(string accountNumber, decimal amount)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
-        Task<WithdrawResponseDto> ITransactionService.WithdrawAsync(string accountNumber, string pin, decimal amount)
-        {
+        //Task<WithdrawResponseDto> ITransactionService.WithdrawAsync(string accountNumber, string pin, decimal amount)
+        //{
 
-            throw new NotImplementedException();
-        }
+        //    throw new NotImplementedException();
+        //}
 
-        TranferFundsResponseDto ITransactionService.TransferFunds(string fromAccountNumber, string toAccountNumber, string pin, decimal amount)
-        {
-            throw new NotImplementedException();
-        }
+        //TranferFundsResponseDto ITransactionService.TransferFunds(string fromAccountNumber, string toAccountNumber, string pin, decimal amount)
+        //{
+        //    throw new NotImplementedException();
+        //}
     }
 }

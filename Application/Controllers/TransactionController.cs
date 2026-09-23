@@ -30,23 +30,23 @@ namespace GDB.App.Application.Controllers
 
         }
 
-        public TranferFundsResponseDto TransferFunds(
+        public async Task<TranferFundsResponseDto> TransferFundsAsync(
             string fromAccountNumber,
             string toAccountNumber,
             string pin,
             decimal amount)
         {
-           return _transactionService.TransferFunds(
+           return await _transactionService.TransferFundsAsync(
                                    fromAccountNumber,
                                    toAccountNumber,
                                    pin,
                                    amount
                                );
         }
-        public List<ViewRecentTransactionsResponseDto>
-            GetRecentTransactions(string accountNumber)
+        public async Task<List<ViewRecentTransactionsResponseDto>>
+            GetRecentTransactionsAsync(string accountNumber)
         {
-            return _transactionService.GetRecentTransactions(
+            return await _transactionService.GetRecentTransactionsAsync(
                 accountNumber);
         }
     }
