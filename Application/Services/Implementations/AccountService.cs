@@ -119,6 +119,7 @@ namespace GDB.App.Application.Services.Implementations
             {
                 AccountNumber = request.AccountNumber,
                 Status = AccountStatus.Closed,
+
                 Message = "Account closed successfully."
             };
         }

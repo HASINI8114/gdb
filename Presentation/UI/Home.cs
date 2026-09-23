@@ -295,7 +295,7 @@ namespace GDB.App.Presentation.UI
             
 
         }
-        public void ViewRecentTransactions()
+        public async void ViewRecentTransactions()
         {
             Console.WriteLine();
             Console.WriteLine("===== VIEW RECENT TRANSACTIONS =====");
@@ -308,8 +308,8 @@ namespace GDB.App.Presentation.UI
                 TransactionController controller =
                     new TransactionController();
 
-                List<ViewRecentTransactionsResponseDto> transactions =
-                    controller.GetRecentTransactions(accountNumber);
+                List<ViewRecentTransactionsResponseDto> transactions =await
+                    controller.GetRecentTransactionsAsync(accountNumber);
 
                 if (transactions.Count == 0)
                 {
@@ -424,7 +424,7 @@ namespace GDB.App.Presentation.UI
                 Console.WriteLine(ex.Message);
             }
         }
-        public void TransferFunds()
+        public async void TransferFunds()
         {
             Console.WriteLine("Enter From Account Number:");
             string fromAccountNumber = Console.ReadLine();
@@ -443,8 +443,8 @@ namespace GDB.App.Presentation.UI
                 TransactionController controller =
                     new TransactionController();
 
-                var result =
-                    controller.TransferFunds(
+                var result = await
+                    controller.TransferFundsAsync(
                         fromAccountNumber,
                         toAccountNumber,
                         pin,

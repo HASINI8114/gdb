@@ -11,13 +11,13 @@ namespace GDB.App.Application.Services.Contracts
 {
     public interface ITransactionService
     {
-        List<ViewRecentTransactionsResponseDto> GetRecentTransactions(
+        Task<List<ViewRecentTransactionsResponseDto>> GetRecentTransactionsAsync(
            string accountNumber);
         Task<DepositResponseDto> DepositAsync(string accountNumber, decimal amount);
 
         Task<WithdrawResponseDto> WithdrawAsync(string accountNumber, string pin, decimal amount);
 
-        TranferFundsResponseDto TransferFunds(
+        Task<TranferFundsResponseDto> TransferFundsAsync(
             string fromAccountNumber,
             string toAccountNumber,
             string pin,
