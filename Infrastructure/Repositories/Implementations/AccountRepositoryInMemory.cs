@@ -31,7 +31,7 @@ namespace GDB.App.Infrastructure.Repositories.Implementations
 
         }
 
-        public IAccount GetAccount(string accountNumber)
+        public async Task<IAccount> GetAccountAsync(string accountNumber)
         {
             //return new SavingsAccount(accountNumber,"Hasini",21,100000m,AccountType.Savings,AccountStatus.Active, "1234", AccountPrivilege.Gold,1000m,4);
             DataTable accountTable = _dataSet.Tables["ACCOUNT"];
@@ -96,7 +96,7 @@ namespace GDB.App.Infrastructure.Repositories.Implementations
                 privilege
             );
 
-            return account;
+            return (IAccount)Task.FromResult(account);
         }
         public void SaveAccounts(IAccount fromAccount, IAccount toAccount)
         {

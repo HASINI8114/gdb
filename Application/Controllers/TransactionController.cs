@@ -19,14 +19,14 @@ namespace GDB.App.Application.Controllers
             _transactionService = TransactionServiceFactory.Create();
         }
 
-        public DepositResponseDto Deposit(string accountNumber, decimal amount)
+        public async Task<DepositResponseDto> DepositAsync(string accountNumber, decimal amount)
         {
-            return _transactionService.Deposit(accountNumber, amount);
+            return await _transactionService.DepositAsync(accountNumber, amount);
         }
 
-        public WithdrawResponseDto Withdraw(string accountNumber,string pin,decimal amount)
+        public async Task<WithdrawResponseDto> WithdrawAsync(string accountNumber,string pin,decimal amount)
         {
-           return _transactionService.Withdraw(accountNumber,pin,amount);
+           return await _transactionService.WithdrawAsync(accountNumber,pin,amount);
 
         }
 

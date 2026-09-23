@@ -13,9 +13,9 @@ namespace GDB.App.Application.Services.Contracts
     {
         List<ViewRecentTransactionsResponseDto> GetRecentTransactions(
            string accountNumber);
-        DepositResponseDto Deposit(string accountNumber, decimal amount);
+        Task<DepositResponseDto> DepositAsync(string accountNumber, decimal amount);
 
-        WithdrawResponseDto Withdraw(string accountNumber, string pin, decimal amount);
+        Task<WithdrawResponseDto> WithdrawAsync(string accountNumber, string pin, decimal amount);
 
         TranferFundsResponseDto TransferFunds(
             string fromAccountNumber,

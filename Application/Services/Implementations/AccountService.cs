@@ -27,11 +27,11 @@ namespace GDB.App.Application.Services.Implementations
             // When TransferService is constructed, Repository is created via factory
             _accountRepository = AccountRepositoryFactory.Create("DB");
         }
-        public IAccount GetAccount(string accNo)
+        public async Task<IAccount> GetAccountAsync(string accNo)
         {
             //Service-> Repository
             //var account = new AccountRepositoryInMemory().GetAccount(accNo);
-            var account = _accountRepository.GetAccount(accNo);
+            var account = await _accountRepository.GetAccountAsync(accNo);
             return account;
         }
         //public List<IAccount> GetAllAccounts()
@@ -82,9 +82,9 @@ namespace GDB.App.Application.Services.Implementations
         //    _accountRepository.ChangePin(accountNumber, oldPin, newPin);
         //}
 
-        public ViewBalanceResponseDto GetBalance(string accNo)
+        public async Task<ViewBalanceResponseDto> GetBalanceAsync(string accNo)
         {
-            var account = _accountRepository.GetAccount(accNo);
+            var account = await _accountRepository.GetAccountAsync(accNo);
             return new ViewBalanceResponseDto()
             {
                 AccountNumber = account.AccountNumber,
@@ -93,9 +93,9 @@ namespace GDB.App.Application.Services.Implementations
             };
         }
 
-        public ViewAccountResponseDto ViewAccount(string accNo)
+        public async Task<ViewAccountResponseDto> ViewAccountAsync(string accNo)
         {
-            var account = _accountRepository.GetAccount(accNo);
+            var account = await _accountRepository.GetAccountAsync(accNo);
             return new ViewAccountResponseDto()
             {
                 AccountNumber = account.AccountNumber,
@@ -103,9 +103,9 @@ namespace GDB.App.Application.Services.Implementations
                 Name = account.Name
             };
         }
-        public CloseAccountResponseDto CloseAccount(CloseAccountRequestDto request)
+        public async Task<CloseAccountResponseDto> CloseAccountAsync(CloseAccountRequestDto request)
         {
-            IAccount account = _accountRepository.GetAccount(request.AccountNumber);
+            IAccount account = await _accountRepository.GetAccountAsync(request.AccountNumber);
 
             if (account == null)
                 throw new Exception("Account not found.");

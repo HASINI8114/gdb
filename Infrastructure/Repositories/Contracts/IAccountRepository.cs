@@ -9,7 +9,7 @@ namespace GDB.App.Infrastructure.Repositories.Contracts
 {
     public interface IAccountRepository
     {
-        IAccount GetAccount(string accountNumber);
+        Task<IAccount> GetAccountAsync(string accountNumber);
         void CloseAccount(string accountNumber);
         void SaveAccount(IAccount account, string pin);
         List<IAccount> GetAllAccounts();

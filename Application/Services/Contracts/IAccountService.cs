@@ -13,18 +13,18 @@ namespace GDB.App.Application.Services.Contracts
 {
     internal interface IAccountService
     {
-        IAccount GetAccount(string accNo);
+       Task<IAccount> GetAccountAsync(string accNo);
         //List<IAccount> GetAllAccounts();
-        
+
         //void ChangePin(string accountNumber, string oldPin, string newPin);
 
-        ViewBalanceResponseDto GetBalance(string accNo);
+        Task<ViewBalanceResponseDto> GetBalanceAsync(string accNo);
 
-        ViewAccountResponseDto ViewAccount(string accNo);
+        Task<ViewAccountResponseDto> ViewAccountAsync(string accNo);
 
         List<ViewAllAccountsResponseDto> GetAllAccounts();
         CreateAccountResponseDto CreateAccount(CreateAccountRequestDto request);
 
-        CloseAccountResponseDto CloseAccount( CloseAccountRequestDto request);
+        Task<CloseAccountResponseDto> CloseAccountAsync( CloseAccountRequestDto request);
     }
 }

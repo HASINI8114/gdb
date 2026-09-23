@@ -27,9 +27,9 @@ namespace GDB.App.Application.Services.Implementations
             _transactionRepository = TransactionRepositoryFactory.Create("DB");
         }
 
-        public DepositResponseDto Deposit(string accountNumber, decimal amount)
+        public async Task<DepositResponseDto> Deposit(string accountNumber, decimal amount)
         {
-            IAccount account = _accountRepository.GetAccount(accountNumber);
+            IAccount account = await _accountRepository.GetAccountAsync(accountNumber);
 
             if (account == null)
             {
@@ -58,12 +58,12 @@ namespace GDB.App.Application.Services.Implementations
             };
         }
 
-        public WithdrawResponseDto Withdraw(
+        public async Task<WithdrawResponseDto> WithdrawAsync(
             string accountNumber,
             string pin,
             decimal amount)
         {
-            IAccount account = _accountRepository.GetAccount(accountNumber);
+            IAccount account = await _accountRepository.GetAccountAsync(accountNumber);
 
             if (account == null)
             {
@@ -94,7 +94,7 @@ namespace GDB.App.Application.Services.Implementations
             };
         }
 
-        public TranferFundsResponseDto TransferFunds(string fromAccountNumber,
+        public async Task<TranferFundsResponseDto> TransferFunds(string fromAccountNumber,
                                 string toAccountNumber,
                                 string pin,
                                 decimal amount)
@@ -107,7 +107,7 @@ namespace GDB.App.Application.Services.Implementations
             try
             {
                 // Get From Account
-                fromAccount = GetAccount(fromAccountNumber);
+                fromAccount = await GetAccountAsync(fromAccountNumber);
                 if (fromAccount == null)
                 {
                     throw new Exception("From account not found");
@@ -117,7 +117,7 @@ namespace GDB.App.Application.Services.Implementations
                 CheckIfAccountIsActive(fromAccount);
 
                 // Get To Account
-                toAccount = GetAccount(toAccountNumber);
+                toAccount =await  GetAccountAsync(toAccountNumber);
 
                 if (toAccount == null)
                 {
@@ -221,7 +221,7 @@ namespace GDB.App.Application.Services.Implementations
 
         //To get the acount information only
 
-        private IAccount GetAccount(string accountNumber)
+        private async Task<IAccount> GetAccountAsync(string accountNumber)
         {
 
             // Get Account info from the database
@@ -238,7 +238,7 @@ namespace GDB.App.Application.Services.Implementations
 
             //var accountRepository = AccountRepositoryFactory.Create();
 
-            var account = _accountRepository.GetAccount(accountNumber);
+            var account = await _accountRepository.GetAccountAsync(accountNumber);
 
 
 
@@ -254,10 +254,10 @@ namespace GDB.App.Application.Services.Implementations
             Console.WriteLine($"Balance        : {account.Balance}");
             Console.WriteLine();
         }
-        public List<ViewRecentTransactionsResponseDto> GetRecentTransactions(string accountNumber)
+        public async Task<List<ViewRecentTransactionsResponseDto>> GetRecentTransactionsAsync(string accountNumber)
         {
             IAccount account =
-                _accountRepository.GetAccount(accountNumber);
+                await _accountRepository.GetAccountAsync(accountNumber);
 
             if (account == null)
                 throw new Exception("Account not found.");
@@ -266,5 +266,25 @@ namespace GDB.App.Application.Services.Implementations
                 accountNumber);
         }
 
+        public List<ViewRecentTransactionsResponseDto> GetRecentTransactions(string accountNumber)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<DepositResponseDto> DepositAsync(string accountNumber, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<WithdrawResponseDto> ITransactionService.WithdrawAsync(string accountNumber, string pin, decimal amount)
+        {
+
+            throw new NotImplementedException();
+        }
+
+        TranferFundsResponseDto ITransactionService.TransferFunds(string fromAccountNumber, string toAccountNumber, string pin, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

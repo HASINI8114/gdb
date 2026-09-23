@@ -44,7 +44,7 @@ namespace GDB.App.Presentation.UI
                         break;
 
                     case 2:
-                        ViewAccount();
+                        ViewAccountAsync();
                         break;
 
                     case 3:
@@ -52,7 +52,7 @@ namespace GDB.App.Presentation.UI
                         break;
 
                     case 4:
-                        ViewBalance();
+                        ViewBalanceAsync();
                         break;
 
                     case 5:
@@ -60,11 +60,11 @@ namespace GDB.App.Presentation.UI
                         break;
 
                     case 6:
-                        Withdraw();
+                        WithdrawAsync();
                         break;
 
                     case 7:
-                        Deposit();
+                        DepositAsync();
                         break;
 
                     case 8:
@@ -232,7 +232,7 @@ namespace GDB.App.Presentation.UI
         }
 
 
-        public void ViewAccount()
+        public async void ViewAccountAsync()
         {
             //Accept accNo to get the accountInfo
             Console.WriteLine("Enter the account number.");
@@ -240,7 +240,7 @@ namespace GDB.App.Presentation.UI
 
             //Contact the database to get the accountInfo
             //UI->controller
-            ViewAccountResponseDto account = new AccountController().ViewAccount(accNo);
+            ViewAccountResponseDto account = await new AccountController().ViewAccountAsync(accNo);
             //Display the accountInfo
             
             if (account == null)
@@ -275,14 +275,14 @@ namespace GDB.App.Presentation.UI
                 Console.WriteLine("Privilege      : " + account.AccountPrivilege);
             }
         }
-        public void ViewBalance()
+        public async void ViewBalanceAsync()
         {
             Console.WriteLine("Enter Account Number:");
             string accountNumber = Console.ReadLine();
 
             AccountController controller = new AccountController();
 
-            ViewBalanceResponseDto account = controller.GetBalance(accountNumber);
+            ViewBalanceResponseDto account = await controller.GetBalanceAsync(accountNumber);
 
             if (account == null)
             {
@@ -370,7 +370,7 @@ namespace GDB.App.Presentation.UI
                 Console.WriteLine($"Error: {ex.Message}");
             }
         }
-        public void Withdraw()
+        public async void WithdrawAsync()
         {
             Console.WriteLine("Enter Account Number:");
             string accountNumber = Console.ReadLine();
@@ -386,7 +386,7 @@ namespace GDB.App.Presentation.UI
                 TransactionController controller =
                     new TransactionController();
 
-                var account = controller.Withdraw(
+                var account = await controller.WithdrawAsync(
                     accountNumber,
                     pin,
                     amount
@@ -401,7 +401,7 @@ namespace GDB.App.Presentation.UI
             }
 
         }
-        public void Deposit()
+        public async void DepositAsync()
         {
             Console.WriteLine("Enter Account Number:");
             string accountNumber = Console.ReadLine();
@@ -414,7 +414,7 @@ namespace GDB.App.Presentation.UI
                 TransactionController controller =
                     new TransactionController();
 
-                var account = controller.Deposit(accountNumber, amount);
+                var account = await controller.DepositAsync(accountNumber, amount);
 
                 Console.WriteLine("Balance: " + account.Balance);
                 Console.WriteLine("Status: " + account.TransactionStat);
@@ -461,7 +461,7 @@ namespace GDB.App.Presentation.UI
                 Console.WriteLine(ex.Message);
             }
         }
-        public void CloseAccount()
+        public async void CloseAccount()
         {
             Console.WriteLine("===== CLOSE ACCOUNT =====");
 
@@ -478,7 +478,7 @@ namespace GDB.App.Presentation.UI
 
                 AccountController controller =new AccountController();
 
-                CloseAccountResponseDto response =controller.CloseAccount(request);
+                CloseAccountResponseDto response = await controller.CloseAccountAsync(request);
 
                 Console.WriteLine();
                 Console.WriteLine("===== ACCOUNT CLOSED =====");

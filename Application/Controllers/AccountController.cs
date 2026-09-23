@@ -23,13 +23,13 @@ namespace GDB.App.Application.Controllers
         }
 
         //Boundary Class 
-        public IAccount GetAccount(string accNo)
+        public async Task<IAccount> GetAccountAsync(string accNo)
         {
 
             IAccount account = null;
 
             //Controller->Service
-            account = _accountService.GetAccount(accNo);
+            account = await _accountService.GetAccountAsync(accNo);
 
 
             return account;
@@ -44,13 +44,13 @@ namespace GDB.App.Application.Controllers
         //    _accountService.ChangePin(accountNumber, oldPin, newPin);
         //}
 
-        public ViewBalanceResponseDto GetBalance(string accNo)
+        public async Task<ViewBalanceResponseDto> GetBalanceAsync(string accNo)
         {
-            return _accountService.GetBalance(accNo);
+            return await _accountService.GetBalanceAsync(accNo);
         }
-        public ViewAccountResponseDto ViewAccount(string accNo)
+        public async Task<ViewAccountResponseDto> ViewAccountAsync(string accNo)
         {
-            return _accountService.ViewAccount(accNo);
+            return await _accountService.ViewAccountAsync(accNo);
         }
 
 
@@ -59,9 +59,9 @@ namespace GDB.App.Application.Controllers
             return _accountService.CreateAccount(request);
         }
 
-        public CloseAccountResponseDto CloseAccount(CloseAccountRequestDto request)
+        public async Task<CloseAccountResponseDto> CloseAccountAsync(CloseAccountRequestDto request)
         {
-            return _accountService.CloseAccount(request);
+            return await _accountService.CloseAccountAsync(request);
         }
     }
 }
